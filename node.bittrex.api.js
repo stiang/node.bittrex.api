@@ -97,27 +97,26 @@ var NodeBittrexApi = function () {
 
     return new Promise(function(resolve, reject) {
       if (opts.stream) {
-          request(op)
-            .pipe(JSONStream.parse())
-            .pipe(es.mapSync(function (data) {
-              callback(null, data);
-              ((opts.verbose) ? console.log("streamed from " + op.uri + " in: %ds", (Date.now() - start) / 1000) : '');
-            }));
-        } else {
-          request(op, function (error, result, body) {
-            if (!body || !result || result.statusCode != 200) {
-              var err = error || new Error('An unknown error occurred when performing API request');
-              console.error(err);
-              reject(err);
-              callback(err);
-            } else {
-              var ret = ((opts.cleartext) ? body : JSON.parse(body));
-              ((opts.verbose) ? console.log("requested from " + result.request.href + " in: %ds", (Date.now() - start) / 1000) : '');
-              resolve(ret);
-              callback(error, ret);
-            }
-          });
-        }
+        request(op)
+          .pipe(JSONStream.parse())
+          .pipe(es.mapSync(function (data) {
+            callback(null, data);
+            ((opts.verbose) ? console.log("streamed from " + op.uri + " in: %ds", (Date.now() - start) / 1000) : '');
+          }));
+      } else {
+        request(op, function (error, result, body) {
+          if (!body || !result || result.statusCode != 200) {
+            var err = error || new Error('An unknown error occurred when performing API request');
+            console.error(err);
+            reject(err);
+            callback(err);
+          } else {
+            var ret = ((opts.cleartext) ? body : JSON.parse(body));
+            ((opts.verbose) ? console.log("requested from " + result.request.href + " in: %ds", (Date.now() - start) / 1000) : '');
+            resolve(ret);
+            callback(error, ret);
+          }
+        });
       }
     });
   };
