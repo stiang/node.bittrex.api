@@ -92,6 +92,7 @@ var NodeBittrexApi = function () {
   };
 
   var sendRequestCallback = function (op, callback) {
+    callback = callback || function() {};
     start = Date.now();
 
     return new Promise(function(resolve, reject) {
