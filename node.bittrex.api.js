@@ -6,7 +6,7 @@
  * Copyright 2014-2015, Adrian Soluch - http://soluch.us/
  * Released under the MIT License
  * ============================================================ */
-var NodeBittrexApi = function () {
+var NodeBittrexApi = function() {
 
   'use strict';
 
@@ -34,11 +34,11 @@ var NodeBittrexApi = function () {
     stream: false
   };
 
-  var getNonce = function () {
+  var getNonce = function() {
     return Math.floor(new Date().getTime() / 1000);
   };
 
-  var extractOptions = function (options) {
+  var extractOptions = function(options) {
     var o = Object.keys(options),
       i;
     for (i = 0; i < o.length; i++) {
@@ -46,7 +46,7 @@ var NodeBittrexApi = function () {
     }
   };
 
-  var apiCredentials = function (uri) {
+  var apiCredentials = function(uri) {
 
     var options = {
       apikey: opts.apikey,
@@ -56,7 +56,7 @@ var NodeBittrexApi = function () {
     return setRequestUriGetParams(uri, options);
   };
 
-  var setRequestUriGetParams = function (uri, options) {
+  var setRequestUriGetParams = function(uri, options) {
     var op;
     if (typeof (uri) === 'object') {
       op = uri;
@@ -77,7 +77,7 @@ var NodeBittrexApi = function () {
     return op;
   };
 
-  var updateQueryStringParameter = function (uri, key, value) {
+  var updateQueryStringParameter = function(uri, key, value) {
 
     var re = new RegExp("([?&])" + key + "=.*?(&|$)", "i");
     var separator = uri.indexOf('?') !== -1 ? "&" : "?";
@@ -91,7 +91,7 @@ var NodeBittrexApi = function () {
     return uri;
   };
 
-  var sendRequestCallback = function (op, callback) {
+  var sendRequestCallback = function(op, callback) {
     callback = callback || function() {};
     start = Date.now();
 
@@ -99,19 +99,20 @@ var NodeBittrexApi = function () {
       if (opts.stream) {
         request(op)
           .pipe(JSONStream.parse())
-          .pipe(es.mapSync(function (data) {
+          .pipe(es.mapSync(function(data) {
             callback(null, data);
             ((opts.verbose) ? console.log("streamed from " + op.uri + " in: %ds", (Date.now() - start) / 1000) : '');
           }));
       } else {
-        request(op, function (error, result, body) {
-          if (!body || !result || result.statusCode != 200) {
-            var err = error || new Error('An unknown error occurred when performing API request');
+        request(op, function(error, result, body) {
+          if (!body || !result || result.statusCode != 200 || !result.success) {
+            var err = error || new Error(result ? result.message : 'An unknown error occurred when performing API request');
             console.error(err);
             reject(err);
             callback(err);
           } else {
-            var ret = ((opts.cleartext) ? body : JSON.parse(body));
+            const parsedBody = JSON.parse(body);
+            var ret = ((opts.cleartext) ? JSON.stringify(body.result) : parsedBody.result);
             ((opts.verbose) ? console.log("requested from " + result.request.href + " in: %ds", (Date.now() - start) / 1000) : '');
             resolve(ret);
             callback(error, ret);
@@ -123,11 +124,11 @@ var NodeBittrexApi = function () {
 
   return {
 
-    options: function (options) {
+    options: function(options) {
       extractOptions(options);
     },
     
-    sendCustomRequest: function (request_string, callback, credentials) {
+    sendCustomRequest: function(request_string, callback, credentials) {
       var op;
 
       if (credentials === true) {
@@ -139,110 +140,110 @@ var NodeBittrexApi = function () {
       return sendRequestCallback(op, callback);
     },
     
-    getMarkets: function (callback) {
+    getMarkets: function(callback) {
       var op = request_options;
       op.uri = opts.baseUrl + '/public/getmarkets';
       return sendRequestCallback(op, callback);
     },
     
-    getCurrencies: function (callback) {
+    getCurrencies: function(callback) {
       var op = request_options;
       op.uri = opts.baseUrl + '/public/getcurrencies';
       return sendRequestCallback(op, callback);
     },
     
-    getTicker: function (options, callback) {
+    getTicker: function(options, callback) {
       var op = setRequestUriGetParams(opts.baseUrl + '/public/getticker', options);
       return sendRequestCallback(op, callback);
     },
     
-    getMarketSummaries: function (callback) {
+    getMarketSummaries: function(callback) {
       var op = request_options;
       op.uri = opts.baseUrl + '/public/getmarketsummaries';
       return sendRequestCallback(op, callback);
     },
     
-    getMarketSummary: function (options, callback) {
+    getMarketSummary: function(options, callback) {
       var op = setRequestUriGetParams(opts.baseUrl + '/public/getmarketsummary', options);
       return sendRequestCallback(op, callback);
     },
     
-    getOrderBook: function (options, callback) {
+    getOrderBook: function(options, callback) {
       var op = setRequestUriGetParams(opts.baseUrl + '/public/getorderbook', options);
       return sendRequestCallback(op, callback);
     },
     
-    getMarketHistory: function (options, callback) {
+    getMarketHistory: function(options, callback) {
       var op = setRequestUriGetParams(opts.baseUrl + '/public/getmarkethistory', options);
       return sendRequestCallback(op, callback);
     },
     
-    buyLimit: function (options, callback) {
+    buyLimit: function(options, callback) {
       var op = setRequestUriGetParams(apiCredentials(opts.baseUrl + '/market/buylimit'), options);
       return sendRequestCallback(op, callback);
     },
 
-    buyMarket: function (options, callback) {
+    buyMarket: function(options, callback) {
       var op = setRequestUriGetParams(apiCredentials(opts.baseUrl + '/market/buymarket'), options);
       return sendRequestCallback(op, callback);
     },
     
-    sellLimit: function (options, callback) {
+    sellLimit: function(options, callback) {
       var op = setRequestUriGetParams(apiCredentials(opts.baseUrl + '/market/selllimit'), options);
       return sendRequestCallback(op, callback);
     },
     
-    sellMarket: function (options, callback) {
+    sellMarket: function(options, callback) {
       var op = setRequestUriGetParams(apiCredentials(opts.baseUrl + '/market/sellmarket'), options);
       return sendRequestCallback(op, callback);
     },
     
-    cancel: function (options, callback) {
+    cancel: function(options, callback) {
       var op = setRequestUriGetParams(apiCredentials(opts.baseUrl + '/market/cancel'), options);
       return sendRequestCallback(op, callback);
     },
     
-    getOpenOrders: function (options, callback) {
+    getOpenOrders: function(options, callback) {
       var op = setRequestUriGetParams(apiCredentials(opts.baseUrl + '/market/getopenorders'), options);
       return sendRequestCallback(op, callback);
     },
     
-    getBalances: function (callback) {
+    getBalances: function(callback) {
       var op = apiCredentials(opts.baseUrl + '/account/getbalances');
       return sendRequestCallback(op, callback);
     },
     
-    getBalance: function (options, callback) {
+    getBalance: function(options, callback) {
       var op = setRequestUriGetParams(apiCredentials(opts.baseUrl + '/account/getbalance'), options);
       return sendRequestCallback(op, callback);
     },
     
-    getWithdrawalHistory: function (options, callback) {
+    getWithdrawalHistory: function(options, callback) {
       var op = setRequestUriGetParams(apiCredentials(opts.baseUrl + '/account/getwithdrawalhistory'), options);
       return sendRequestCallback(op, callback);
     },
     
-    getDepositAddress: function (options, callback) {
+    getDepositAddress: function(options, callback) {
       var op = setRequestUriGetParams(apiCredentials(opts.baseUrl + '/account/getdepositaddress'), options);
       return sendRequestCallback(op, callback);
     },
     
-    getDepositHistory: function (options, callback) {
+    getDepositHistory: function(options, callback) {
       var op = setRequestUriGetParams(apiCredentials(opts.baseUrl + '/account/getdeposithistory'), options);
       return sendRequestCallback(op, callback);
     },
     
-    getOrderHistory: function (options, callback) {
+    getOrderHistory: function(options, callback) {
       var op = setRequestUriGetParams(apiCredentials(opts.baseUrl + '/account/getorderhistory'), options);
       return sendRequestCallback(op, callback);
     },
     
-    getOrder: function (options, callback) {
+    getOrder: function(options, callback) {
       var op = setRequestUriGetParams(apiCredentials(opts.baseUrl + '/account/getorder'), options);
       return sendRequestCallback(op, callback);
     },
     
-    withdraw: function (options, callback) {
+    withdraw: function(options, callback) {
       var op = setRequestUriGetParams(apiCredentials(opts.baseUrl + '/account/withdraw'), options);
       return sendRequestCallback(op, callback);
     }
