@@ -105,13 +105,13 @@ var NodeBittrexApi = function() {
           }));
       } else {
         request(op, function(error, result, body) {
-          if (!body || !result || result.statusCode != 200 || !result.success) {
-            var err = error || new Error(result ? result.message : 'An unknown error occurred when performing API request');
+          const parsedBody = body ? JSON.parse(body) : null;
+          if (!body || !result || result.statusCode != 200 || (parsedBody && !parsedBody.success)) {
+            var err = error || new Error(parsedBody ? parsedBody.message : 'An unknown error occurred when performing API request');
             console.error(err);
             reject(err);
             callback(err);
           } else {
-            const parsedBody = JSON.parse(body);
             var ret = ((opts.cleartext) ? JSON.stringify(body.result) : parsedBody.result);
             ((opts.verbose) ? console.log("requested from " + result.request.href + " in: %ds", (Date.now() - start) / 1000) : '');
             resolve(ret);
